@@ -8,6 +8,9 @@ def seq2int(seq):
         n = 2 * n + e
     return n
 
+def lcm(x, y):
+    return x*y//gcd(x, y) 
+
 def ones(seq):
     return sum(seq)
 
@@ -16,6 +19,18 @@ def map1(op, x):
 
 def map2(op, x, y):
     return [op(xi, yi) & 1 for xi, yi in zip(x,y)]
+
+# subsample x according to y
+def on(x, y):
+    if not y:
+        return []
+    if x[0] == 0:
+        return [0] + on(x[1:], y)
+    else:
+        if y[0]:
+            return [1] + on(x[1:], y[1:])
+        else:
+            return [0] + on(x[1:], y[1:])
 
 # long division 
 #
@@ -46,33 +61,6 @@ def clock(initial, repeat):
 
 take = islice
 
-# expand x and y so that the 
-#  len(prefix) = max(len(prefix(x)),len(prefix(y)))
-#  len(suffix) = lcm(len(suffix(x)),len(suffix(y)))
-def expand(x, y):
-    nx = len(x.prefix())
-    ny = len(y.prefix())
-    nr = max(nx, ny)
-
-    mx = len(x.suffix())
-    my = len(y.suffix())
-    mr = mx*my//gcd(mx, my) # lcm
-
-    xl = list(take(x, nr+mr))
-    yl = list(take(y, nr+mr))
-
-    return Clock(xl[:nr], xl[nr:]), Clock(yl[:nr], yl[nr:])
-
-# expand x and y so that their prefix/suffix has the same number of 1s
-def onesexpand(x, y):
-    pass
-
-# expand x and y so that the prefix/suffix of x
-# has the same number of ones as the length
-# of the prefix/suffix of y.
-def onexpand(s, y):
-    pass
-
 class Clock:
     def __init__(self, x, y=None):
         if isinstance(x, Fraction):
@@ -89,6 +77,16 @@ class Clock:
 
     def suffix(self):
         return self.signal[1]
+
+    # return the position of the p'th 1
+    #  note that in the paper, positions start at 1, here they start at 0
+    def pos(self, p):
+        n = 0
+        for i, c in enumerate(self):
+            if c:
+                n += 1
+            if n == p:
+                return i
 
     def __str__(self):
         return str(self.signal)
@@ -112,10 +110,24 @@ class Clock:
     def __invert__(self):
        return self.unaryop(operator.__invert__)
 
+    def expand(self, nr, mr):
+        l = list(take(self, nr+mr))
+        return Clock(l[:nr], l[nr:])
+
     def binaryop(self, other, op):
-       x, y = expand(self, other)
-       return Clock( map2(op, x.prefix(), y.prefix()), 
-                     map2(op, x.suffix(), y.suffix()) )
+        x, y = self, other
+
+        # expand x and y so that the 
+        #  len(prefix) = max(len(prefix(x)),len(prefix(y)))
+        #  len(suffix) = lcm(len(suffix(x)),len(suffix(y)))
+        nr = max( len(x.prefix()), len(y.prefix()) )
+        mr = lcm( len(x.suffix()), len(y.suffix()) )
+
+        x = x.expand(nr, mr)
+        y = y.expand(nr, mr)
+
+        return Clock( map2(op, x.prefix(), y.prefix()), 
+                      map2(op, x.suffix(), y.suffix()) )
 
     def __and__(self, other):
        return self.binaryop(other, operator.__and__)
@@ -143,19 +155,40 @@ class Clock:
        return Clock(f._numerator, f._denominator << other)
 
 
-    # two sequences are synchronizable if the percentage of ones are the same
+    # the rate is the percentage of ones
+    def rate(self):
+        return Fraction(ones(x.suffix()), len(x.suffix())) 
+
+    # two sequences are synchronizable if their rates are equal
     def synchronizable(self, other):
-        x, y = expandones(self, other)
-        x = Fraction(ones(x.suffix()), len(x.suffix())) 
-        y = Fraction(ones(y.suffix()), len(y.suffix())) 
-        return x == y
+        return self.rate() == other.rate()
 
-    # on
+    def on(self, other):
+        x, y = self, other
+
+        xl = ones(x.prefix())
+        yl = len(y.prefix())
+        n = lcm( ones(x.suffix()), len(y.suffix()) )
+        m = len(x.suffix()) * n // ones(x.suffix())
+        #print(m,n)
+        if   xl < yl:
+            x = x.expand( x.pos(yl)+1, m )
+        elif yl < xl:
+            x = x.expand( len(x.prefix()), m )
+            y = y.expand( xl, n )
+        else:
+            x = x.expand( len(x.prefix()), m )
+            y = y.expand( len(y.prefix()), n )
+        #print(x)
+        #print(y)
+
+        return Clock( on(x.prefix(), y.prefix()), on(x.suffix(), y.suffix()) )
 
 
-x = Clock(1,6)
-print(x)
-print(x.to_fraction())
+#x = Clock(1,6)
+#print(x)
+#print(x.to_fraction())
+#print(x.pos(2))
 #print(list(take(x, 10)))
 
 #y = Clock(2,3)
@@ -163,18 +196,22 @@ print(x.to_fraction())
 #print(y.to_fraction())
 #print(list(take(y, 10)))
 
-#x, y = expand(x, y)
-#print(x)
-#print(y)
-
 #print(x & y)
 #print(x | y)
 #print(x ^ y)
 #print(~ x)
 
-y = x >> 1
-print(y)
-print(y.to_fraction())
-y = x << 3
-print(y)
-print(y.to_fraction())
+#y = x >> 1
+#print(y)
+#print(y.to_fraction())
+#y = x << 3
+#print(y)
+#print(y.to_fraction())
+
+x = Clock([],[0,1])
+y = Clock([],[1,0,1])
+print(x,'on',y,'=',x.on(y))
+
+x = Clock([0, 1, 0],[0,0,1,1,0,0])
+y = Clock([1, 0, 0, 0, 1],[1,0])
+print(x,'on',y,'=',x.on(y))
