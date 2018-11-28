@@ -32,25 +32,25 @@ def on(x, y):
         else:
             return [0] + on(x[1:], y[1:])
 
-# long division from the right
+# long division 
 #
 # return an infinite periodic sequence of binary digits
 def divide(x):
-    p = x._numerator 
+    p = x._numerator % x._denominator
     q = x._denominator
 
     l = []
     b = []
-    # loop until p repeats
+    # loop until the q repeats
     # note that this implies that we cannot that loop more than q times
     while p not in l:
         l.append(p)
-        if p & 1:
+        if 2*p > q: # denominator divides numerator
             b.append(1)
-            p = (p - q)//2
+            p = 2*p - q
         else:
             b.append(0)
-            p = p//2
+            p = 2*p
         
     #print(b, p, l)
     i = l.index(p)
@@ -66,7 +66,7 @@ class Clock:
         if isinstance(x, Fraction):
             self.signal = divide(x)
         elif isinstance(x, int) and isinstance(y, int):
-            self.signal = divide(Fraction(x,y))
+            self.signal = divide(Fraction(x%y,y))
         elif isinstance(x, list) and isinstance(y, list):
             self.signal = (x, y)
         else:
@@ -95,13 +95,13 @@ class Clock:
         return clock(self.prefix(), self.suffix())
 
     def to_fraction(self):
-       p = list(reversed(self.prefix()))
-       m = len(p)
-       s = list(reversed(self.suffix()))
-       n = len(s)
-       s = seq2int(s+p)
-       p = seq2int(p)
-       return Fraction(s-(p<<n), 1-(1<<n))
+       den = 1 << len(self.prefix() + self.suffix())
+       if self.prefix():
+           den -= 1 << len(self.prefix())
+       else:
+           den -= 1
+       num = seq2int(self.prefix() + self.suffix()) - seq2int(self.prefix())
+       return Fraction(num, den)
 
     def unaryop(self, op):
        return Clock( map1(op, self.prefix()),
@@ -208,24 +208,12 @@ class Clock:
 #print(y)
 #print(y.to_fraction())
 
-#x = Clock([],[0,1])
-#y = Clock([],[1,0,1])
-#print(x,'on',y,'=',x.on(y))
-#
-#x = Clock([0, 1, 0],[0,0,1,1,0,0])
-#y = Clock([1, 0, 0, 0, 1],[1,0])
-#print(x,'on',y,'=',x.on(y))
+x = Clock([],[0,1])
+y = Clock([],[1,0,1])
+print(x,'on',y,'=',x.on(y))
 
-#print(Clock([0,1,0,1],[1,1,0]).to_fraction())
+x = Clock([0, 1, 0],[0,0,1,1,0,0])
+y = Clock([1, 0, 0, 0, 1],[1,0])
+print(x,'on',y,'=',x.on(y))
 
-x = Clock(Fraction(1,3))
-print(x)
-print(x.to_fraction())
-
-x = Clock(Fraction(-1,1))
-print(x)
-print(x.to_fraction())
-
-x = Clock(Fraction(-2,1))
-print(x)
-print(x.to_fraction())
+print(Clock([0,1,0,1],[1,1,0]).to_fraction())
