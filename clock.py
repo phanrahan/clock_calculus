@@ -116,7 +116,7 @@ class Clock:
        s = list(self.suffix())
        n = len(s)
        p = Fraction(seq2int(p),1)
-       s = Fraction(seq2int(s),((1<<n)-1)<<self.signal[2])
+       s = Fraction(seq2int(s)<<m,((1<<n)-1)<<self.signal[2])
        return p-s
 
     def unaryop(self, op):
