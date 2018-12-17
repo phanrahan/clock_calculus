@@ -2,11 +2,17 @@ import operator
 from fractions import Fraction, gcd
 from itertools import cycle, chain, islice
 
+# lsb first
 def seq2int(seq):
-    n = 0
-    for e in seq:
-        n = 2 * n + e
-    return n
+    return sum([e<<i for i, e in enumerate(seq)])
+
+# lsb first
+def int2seq(n):
+    l = []
+    while n > 0:
+        l.append( n & 1 )
+        n >>= 1
+    return l
 
 def lcm(x, y):
     return x*y//gcd(x, y) 
@@ -38,23 +44,33 @@ def on(x, y):
 def divide(x):
     p = x._numerator 
     q = x._denominator
+    if q < 0:
+        p = -p
+        q = -q
 
-    l = []
+    n = 0
+    while q&1 == 0:
+        n += 1
+        q //= 2
+
     b = []
+    l = []
     # loop until p repeats
-    # note that this implies that we cannot that loop more than q times
+    # note that this fact implies that we cannot loop more than q times
     while p not in l:
+        #print(p)
         l.append(p)
         if p & 1:
             b.append(1)
-            p = (p - q)//2
+            p -= q
         else:
             b.append(0)
-            p = p//2
+        p //= 2
+
         
     #print(b, p, l)
     i = l.index(p)
-    return b[:i], b[i:]
+    return b[:i], b[i:], n
 
 def clock(initial, repeat):
     return chain(initial, cycle(repeat))
@@ -62,13 +78,13 @@ def clock(initial, repeat):
 take = islice
 
 class Clock:
-    def __init__(self, x, y=None):
+    def __init__(self, x, y=1):
         if isinstance(x, Fraction):
             self.signal = divide(x)
         elif isinstance(x, int) and isinstance(y, int):
             self.signal = divide(Fraction(x,y))
         elif isinstance(x, list) and isinstance(y, list):
-            self.signal = (x, y)
+            self.signal = (x, y, 0)
         else:
              raise ValueError('Clock init')
 
@@ -95,13 +111,13 @@ class Clock:
         return clock(self.prefix(), self.suffix())
 
     def to_fraction(self):
-       p = list(reversed(self.prefix()))
+       p = list(self.prefix())
        m = len(p)
-       s = list(reversed(self.suffix()))
+       s = list(self.suffix())
        n = len(s)
-       s = seq2int(s+p)
-       p = seq2int(p)
-       return Fraction(s-(p<<n), 1-(1<<n))
+       p = Fraction(seq2int(p),1)
+       s = Fraction(seq2int(s),((1<<n)-1)<<self.signal[2])
+       return p-s
 
     def unaryop(self, op):
        return Clock( map1(op, self.prefix()),
@@ -129,6 +145,7 @@ class Clock:
         return Clock( map2(op, x.prefix(), y.prefix()), 
                       map2(op, x.suffix(), y.suffix()) )
 
+
     def __and__(self, other):
        return self.binaryop(other, operator.__and__)
     def __rand__(self,other):
@@ -154,6 +171,36 @@ class Clock:
        f = self.to_fraction()
        return Clock(f._numerator, f._denominator << other)
 
+    def __neg__(self):
+       return Clock(~x+Clock(1))
+
+    def __add__(self, other):
+       x = self.to_fraction()
+       y = other.to_fraction()
+       return Clock(x-y)
+    def __radd__(self,other):
+       return self+other
+
+    def __sub__(self, other):
+       x = self.to_fraction()
+       y = other.to_fraction()
+       return Clock(x-y)
+    def __rsub__(self,other):
+       return self-other
+
+    def __mul__(self, other):
+       x = self.to_fraction()
+       y = other.to_fraction()
+       return Clock(x*y)
+    def __rmul__(self,other):
+       return self*other
+
+    def __truediv__(self, other):
+       x = self.to_fraction()
+       y = other.to_fraction()
+       return Clock(x/y)
+    def __rtruediv__(self,other):
+       return self/other
 
     # the rate is the percentage of ones
     def rate(self):
@@ -184,17 +231,33 @@ class Clock:
 
         return Clock( on(x.prefix(), y.prefix()), on(x.suffix(), y.suffix()) )
 
+def debug(x):
+    print(x.to_fraction(),x)
 
-#x = Clock(1,6)
-#print(x)
-#print(x.to_fraction())
-#print(x.pos(2))
-#print(list(take(x, 10)))
+#x = debug(Clock(1))
+#x = debug(Clock(-1))
+#x = debug(Clock(2))
+#x = debug(Clock(-2))
+#x = debug(Clock(1,3))
+#x = debug(Clock(-1,3))
+#x = debug(Clock(1,6))
+#x = debug(Clock(-1,6))
+
+debug(Clock(5,3))
+
+debug(Clock([],[0,1])) # -2/3
+debug(Clock([],[0,0,0,1])) # -8/15
 
 #y = Clock(2,3)
-#print(y)
-#print(y.to_fraction())
 #print(list(take(y, 10)))
+
+x = Clock([], [1,0,0,0])
+debug(x)
+y = Clock([1, 1], [0])
+debug(y)
+z = x*y
+debug(z)
+debug(z/y)
 
 #print(x & y)
 #print(x | y)
@@ -208,7 +271,6 @@ class Clock:
 #print(y)
 #print(y.to_fraction())
 
-#x = Clock([],[0,1])
 #y = Clock([],[1,0,1])
 #print(x,'on',y,'=',x.on(y))
 #
@@ -218,14 +280,15 @@ class Clock:
 
 #print(Clock([0,1,0,1],[1,1,0]).to_fraction())
 
-x = Clock(Fraction(1,3))
-print(x)
-print(x.to_fraction())
+#x = Clock(Fraction(1,3))
+#print(x)
+#print(x.to_fraction())
 
-x = Clock(Fraction(-1,1))
-print(x)
-print(x.to_fraction())
+#x = Clock(Fraction(-1,1))
+#print(x)
+#print(x.to_fraction())
 
-x = Clock(Fraction(-2,1))
-print(x)
-print(x.to_fraction())
+#x = Clock(Fraction(-2,1))
+#print(x)
+#print(x.to_fraction())
+
