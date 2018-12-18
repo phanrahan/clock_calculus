@@ -5,6 +5,8 @@ from fractions import Fraction
 @pytest.mark.parametrize("n", [1,2,-1,-2, 
     Fraction(1,3), 
     Fraction(-1,3),
+    #Fraction(1,6), 
+    Fraction(-1,6), 
     Fraction(5,3)])
 def test_init(n):
     c = Clock(n)
@@ -41,3 +43,7 @@ def test_on():
     print(x,'on',y,'=',x.on(y))
 
 
+#print(Clock(1,3))
+#print(Clock(1,3).to_fraction())
+#print(Clock(-1,6))
+#print(Clock(-1,6).to_fraction())

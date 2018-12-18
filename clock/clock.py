@@ -112,13 +112,15 @@ class Clock:
         return clock(self.prefix(), self.suffix())
 
     def to_fraction(self):
+       n = self.signal[2] 
        p = list(self.prefix())
-       m = len(p)
+       np = len(p)
        s = list(self.suffix())
-       n = len(s)
-       p = Fraction(seq2int(p),1)
-       s = Fraction(seq2int(s)<<m,((1<<n)-1)<<self.signal[2])
-       return p-s
+       ns = len(s)
+
+       p = Fraction(seq2int(p))
+       s = Fraction(seq2int(s)<<np,((1<<ns)-1))
+       return (p-s)*Fraction(1,1<<n)
 
     def unaryop(self, op):
        return Clock( map1(op, self.prefix()),
