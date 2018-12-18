@@ -1,5 +1,6 @@
 import operator
-from fractions import Fraction, gcd
+from math import gcd
+from fractions import Fraction
 from itertools import cycle, chain, islice
 
 # lsb first
@@ -226,69 +227,6 @@ class Clock:
         else:
             x = x.expand( len(x.prefix()), m )
             y = y.expand( len(y.prefix()), n )
-        #print(x)
-        #print(y)
 
         return Clock( on(x.prefix(), y.prefix()), on(x.suffix(), y.suffix()) )
-
-def debug(x):
-    print(x.to_fraction(),x)
-
-#x = debug(Clock(1))
-#x = debug(Clock(-1))
-#x = debug(Clock(2))
-#x = debug(Clock(-2))
-#x = debug(Clock(1,3))
-#x = debug(Clock(-1,3))
-#x = debug(Clock(1,6))
-#x = debug(Clock(-1,6))
-
-debug(Clock(5,3))
-
-debug(Clock([],[0,1])) # -2/3
-debug(Clock([],[0,0,0,1])) # -8/15
-
-#y = Clock(2,3)
-#print(list(take(y, 10)))
-
-x = Clock([], [1,0,0,0])
-debug(x)
-y = Clock([1, 1], [0])
-debug(y)
-z = x*y
-debug(z)
-debug(z/y)
-
-#print(x & y)
-#print(x | y)
-#print(x ^ y)
-#print(~ x)
-
-#y = x >> 1
-#print(y)
-#print(y.to_fraction())
-#y = x << 3
-#print(y)
-#print(y.to_fraction())
-
-#y = Clock([],[1,0,1])
-#print(x,'on',y,'=',x.on(y))
-#
-#x = Clock([0, 1, 0],[0,0,1,1,0,0])
-#y = Clock([1, 0, 0, 0, 1],[1,0])
-#print(x,'on',y,'=',x.on(y))
-
-#print(Clock([0,1,0,1],[1,1,0]).to_fraction())
-
-#x = Clock(Fraction(1,3))
-#print(x)
-#print(x.to_fraction())
-
-#x = Clock(Fraction(-1,1))
-#print(x)
-#print(x.to_fraction())
-
-#x = Clock(Fraction(-2,1))
-#print(x)
-#print(x.to_fraction())
 

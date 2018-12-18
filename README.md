@@ -44,3 +44,22 @@ For example,
 
 Define arithmetic operators: addition (+), subtraction (-).
 multiplication (*), division (/), and modulo (%).
+
+## References
+
+Based on:
+
+Albert Cohen, Marc Duranton, Christine Eisenbeis, Claire Pagetti, Florence Plateau, and Marc Pouzet.  2006.
+N-synchronous Kahn networks: a relaxed model of synchrony for real-time systems.
+SIGPLAN Not. 41, 1 (January 2006), 180-193.
+
+E. C. R. Hehner and R. N. S. Horspool.
+A New Representation of the Rational Numbers for Fast Easy Arithmetic.
+SIAM Journal on Computing, 1979, Vol. 8, No. 2 : pp. 124-134.
+
+Andrew Rich. 2008. 
+Leftist Numbers,
+The College Mathematics Journal, 39:5, 330-336.
+
+https://gist.github.com/frostburn/1497886
+
