@@ -49,17 +49,23 @@ multiplication (*), division (/), and modulo (%).
 
 Based on:
 
-Albert Cohen, Marc Duranton, Christine Eisenbeis, Claire Pagetti, Florence Plateau, and Marc Pouzet.  2006.
+Albert Cohen, Marc Duranton, Christine Eisenbeis,
+Claire Pagetti, Florence Plateau, and Marc Pouzet.
 N-synchronous Kahn networks: a relaxed model of synchrony for real-time systems.
 SIGPLAN Not. 41, 1 (January 2006), 180-193.
+
+Jean E. Vuillemin,
+On circuits and numbers,
+IEEE Trans. Comput., 43(8):868–879, 1994.
 
 E. C. R. Hehner and R. N. S. Horspool.
 A New Representation of the Rational Numbers for Fast Easy Arithmetic.
 SIAM Journal on Computing, 1979, Vol. 8, No. 2 : pp. 124-134.
 
-Andrew Rich. 2008. 
+Andrew Rich.
 Leftist Numbers,
 The College Mathematics Journal, 39:5, 330-336.
+2008. 
 
 https://gist.github.com/frostburn/1497886
 
